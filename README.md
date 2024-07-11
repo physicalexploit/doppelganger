@@ -74,7 +74,6 @@ The simpliest way to get going with Doppelgänger is to head over to the [Practi
 ### Doppelgänger Breakout Board
 
 * [Doppelgänger Longrange Breakout Board](https://store.physicalexploit.com/products/doppelganger-longrange-breakout-board): Supports HID MaxiProx 5375 and HID iCLASS R90SE
-* [Doppelgänger MFAS Breakout Board](https://store.physicalexploit.com/products/doppelganger-mfas-breakout-board): Supports Multi-Factor Stealth and Stealth Wiegand Data Interpreter
 
 ## DIY Build
 
