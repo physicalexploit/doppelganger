@@ -1,10 +1,13 @@
 /*
- * Doppelgänger RFID Suite || Version 2.0
+ * Doppelgänger RFID Community Edition
+ * Version 2.0.1
+ * Last Update: July 4, 2024
+ *
+ * Copyright (c) 2024
  *
  * Written by Travis Weathers
  * GitHub: https://github.com/tweathers-sec/
  * Store: https://store.physicalexploit.com/
- *
  */
 
 ///////////////////////////////////////////////////////
@@ -23,9 +26,9 @@
 // Wiegand Configurations
 #define MAX_BITS 100           // Max number of bits
 #define WEIGAND_WAIT_TIME 3000 // Time to wait for another weigand pulse.
-#define DATA0 26               // Pin Header for DATA0 Connetion (IoT Redboard = 26 | Thing Plus C = 26)
-#define DATA1 25               // Pin Header for DATA1 Connetion (IoT Redboard = 27 | Thing Plus C = 25)
-const int C_PIN_LED = 13;      // LED indicator for config mode (IOT Redboard = 18 | Thing Plus C = 13)
+#define DATA0 26               // Pin Header for DATA0 Connetion (Thing Plus C = 26)
+#define DATA1 25               // Pin Header for DATA1 Connetion (Thing Plus C = 25)
+const int C_PIN_LED = 13;      // LED indicator for config mode (Thing Plus C = 13)
 
 unsigned char databits[MAX_BITS]; // Stores all of the data bits
 volatile unsigned int bitCount = 0;
@@ -34,6 +37,8 @@ unsigned int weigand_counter; // Countdown until we assume there are no more bit
 
 volatile unsigned long facilityCode = 0; // Decoded facility code
 volatile unsigned long cardNumber = 0;   // Decoded card number
+volatile unsigned long dataStream = 0;
+String dataStreamBIN = "";
 
 // Breaking up card value into 2 chunks to create 10 char HEX value
 volatile unsigned long bitHolder1 = 0;
@@ -44,7 +49,7 @@ volatile unsigned long cardChunk2 = 0;
 ///////////////////////////////////////////////////////
 // File Configuration
 #define FORMAT_LITTLEFS_IF_FAILED true
-#define JSON_CONFIG_FILE "/www/config.json"
+#define JSON_CONFIG_FILE "/config.json"
 #define CARDS_CSV_FILE "/www/cards.csv"
 
 ///////////////////////////////////////////////////////
@@ -318,18 +323,34 @@ void setup()
   delay(10);
 
   ///////////////////////////////////////////////////////
+  // Startup Banner and Version Information
+  ///////////////////////////////////////////////////////
+  Serial.println("======================================");
+  Serial.println("Doppelgänger RFID Community Edition");
+  Serial.println("Copyright (c) 2024");
+  Serial.println("Version: 2.0.1");
+  Serial.println("Firmware & Hardware: @tweathers-sec (GitHub) @tweathers_sec (X.com)");
+  Serial.println("Note: For expanded card support and features, visit https://store.physicalexploit.com/ and ");
+  Serial.println("consider purchasing Doppelgänger Pro, Stealth, or MFAS (MFA-Stealth).");
+  Serial.println("======================================");
+  Serial.println("LEGAL DISCLAIMER:");
+  Serial.println("This device is intended for professional penetration testing only.");
+  Serial.println("Unauthorized or illegal use/possession is the sole responsibility of the user.");
+  Serial.println("Mayweather Group LLC, Practical Physical Exploitation, and the creator are ");
+  Serial.println("not liable for illegal application of this device.");
+
+  ///////////////////////////////////////////////////////
   // Wiegand Configuration
   ///////////////////////////////////////////////////////
   Serial.println("======================================");
-  pinMode(DATA0, INPUT); // DATA0 (INT0)
-  pinMode(DATA1, INPUT); // DATA1 (INT1)
+  pinMode(DATA0, INPUT);
+  pinMode(DATA1, INPUT);
   Serial.print("[GPIO] Setting DATA0 to pin: ");
   Serial.println(DATA0);
   Serial.print("[GPIO] Setting DATA1 to pin: ");
   Serial.println(DATA1);
   Serial.println("[GPIO] Ground should be conntected to GND");
 
-  // Binds the ISR functions to INTO and INT1
   attachInterrupt(DATA0, ISR_INT0, FALLING);
   attachInterrupt(DATA1, ISR_INT1, FALLING);
   weigand_counter = WEIGAND_WAIT_TIME;
@@ -362,17 +383,14 @@ void setup()
   wifiManager.setSaveConfigCallback([]()
                                     {
       shouldSaveConfig = true;
-      // need to reboot after config to free up port 80 for the webserver
       ESP.restart(); });
 
-  // Customize the WiFiManager menu a bit
   std::vector<const char *> menu = {"wifi", "wifinoscan", "sep", "info", "update", "sep", "restart", "exit"};
   wifiManager.setMenu(menu);
 
   Serial.println("======================================");
   digitalWrite(C_PIN_LED, LED_ON);
 
-  // if (!wifiManager.autoConnect(defaultSSID, defaultPASS))
   if (!wifiManager.autoConnect(defaultSSID.c_str(), defaultPASS))
   {
     Serial.println("[WIFI] Failed to connect to stored Wireless network and hit timeout");
@@ -381,7 +399,6 @@ void setup()
     delay(5000);
   }
 
-  // Load stored stored configuration
   readConfig();
 
   ///////////////////////////////////////////////////////
@@ -517,18 +534,15 @@ void sendCardsEmail()
   message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_low;
   message.response.notify = esp_mail_smtp_notify_success | esp_mail_smtp_notify_failure | esp_mail_smtp_notify_delay;
 
-  // Connect to server with the session config
   if (!smtp.connect(&session))
     return;
 
-  // Send the email and close the session
   if (!MailClient.sendMail(&smtp, &message))
     Serial.println("[Email] Error sending Email, " + smtp.errorReason());
 }
 
 void smtpCallback(SMTP_Status status)
 {
-  // Print the results
   if (status.success())
   {
     struct tm dt;
@@ -551,6 +565,9 @@ void smtpCallback(SMTP_Status status)
 
 ///////////////////////////////////////////////////////
 // Card logging
+///////////////////////////////////////////////////////
+
+// Write the card data to a CSV file
 void writeCSVLog()
 {
   Serial.print("[CARD LOG] Logging card data to ");
@@ -575,15 +592,7 @@ void writeCSVLog()
     csvCards.print(", Card_Number: ");
     csvCards.print(cardNumber, DEC);
     csvCards.print(", BIN: ");
-    for (int i = 19; i >= 0; i--)
-    {
-      csvCards.print(bitRead(cardChunk1, i));
-    }
-    for (int i = 23; i >= 0; i--)
-    {
-      csvCards.print(bitRead(cardChunk2, i));
-    }
-    csvCards.print("\n");
+    csvCards.println(dataStreamBIN);
   }
   csvCards.close();
 }
@@ -604,6 +613,8 @@ void consoleLog()
     Serial.print(", HEX = ");
     Serial.print(cardChunk1, HEX);
     Serial.println(cardChunk2, HEX);
+    Serial.print(", BIN = ");
+    Serial.println(dataStreamBIN);
   }
   else
   {
@@ -623,23 +634,42 @@ void consoleLog()
     Serial.print(", HEX = ");
     Serial.print(cardChunk1, HEX);
     Serial.println(cardChunk2, HEX);
+    Serial.print(", BIN = ");
+    Serial.println(dataStreamBIN);
   }
 }
 
 ///////////////////////////////////////////////////////
 // Wiegand data flow and processing
+///////////////////////////////////////////////////////
+
+// Get the Wiegand pulse and format it to a BINARY string
+void getDataStream()
+{
+  unsigned char i;
+
+  for (i = 0; i < bitCount; i++)
+  {
+    dataStream <<= 1;
+    dataStream |= databits[i];
+  }
+
+  dataStreamBIN = String(dataStream, BIN);
+
+  while (dataStreamBIN.length() < bitCount)
+  {
+    dataStreamBIN = "0" + dataStreamBIN;
+  }
+}
+
 void getFacilityCodeCardNumber()
 {
   unsigned char i;
 
-  // Cards will be decoded differently depending on Bit Length
-  // Reference: http://www.pagemac.com/projects/rfid/hid_data_formats
-  // Reference: https://www.brivo.com/resources/card-calculator/
-
   switch (bitCount)
   {
 
-  // Standard HID H10301 26-bit
+  // Standard HID H10301 26-bit || Indala 26-bit
   case 26:
     for (i = 1; i < 9; i++)
     {
@@ -654,7 +684,7 @@ void getFacilityCodeCardNumber()
     }
     break;
 
-    // Indala 27-bit (Not Tested)
+    // Indala 27-bit
   case 27:
     for (i = 1; i < 13; i++)
     {
@@ -669,7 +699,7 @@ void getFacilityCodeCardNumber()
     }
     break;
 
-  // Indala 29-bit (Not Tested)
+  // Indala 29-bit
   case 29:
     for (i = 1; i < 13; i++)
     {
@@ -684,7 +714,7 @@ void getFacilityCodeCardNumber()
     }
     break;
 
-  // Generic HID 33-bit
+  // HID D10202 33-bit
   case 33:
     for (i = 1; i < 8; i++)
     {
@@ -779,6 +809,7 @@ void getCardValues()
     break;
 
   case 27:
+
     for (int i = 19; i >= 0; i--)
     {
       if (i == 13 || i == 3)
@@ -805,6 +836,7 @@ void getCardValues()
     break;
 
   case 28:
+
     for (int i = 19; i >= 0; i--)
     {
       if (i == 13 || i == 4)
@@ -831,6 +863,7 @@ void getCardValues()
     break;
 
   case 29:
+
     for (int i = 19; i >= 0; i--)
     {
       if (i == 13 || i == 5)
@@ -857,6 +890,7 @@ void getCardValues()
     break;
 
   case 30:
+
     for (int i = 19; i >= 0; i--)
     {
       if (i == 13 || i == 6)
@@ -883,6 +917,7 @@ void getCardValues()
     break;
 
   case 31:
+
     for (int i = 19; i >= 0; i--)
     {
       if (i == 13 || i == 7)
@@ -909,6 +944,7 @@ void getCardValues()
     break;
 
   case 32:
+
     for (int i = 19; i >= 0; i--)
     {
       if (i == 13 || i == 8)
@@ -932,28 +968,30 @@ void getCardValues()
         bitWrite(cardChunk2, i, bitRead(bitHolder2, i));
       }
     }
+
     break;
 
   case 33:
+
     for (int i = 19; i >= 0; i--)
     {
-      if (i == 13 || i == 9)
+      if (i == 15 || i == 11)
       {
         bitWrite(cardChunk1, i, 1);
       }
-      else if (i > 9)
+      else if (i > 11)
       {
         bitWrite(cardChunk1, i, 0);
       }
       else
       {
-        bitWrite(cardChunk1, i, bitRead(bitHolder1, i + 13));
+        bitWrite(cardChunk1, i, bitRead(bitHolder1, i + 17));
       }
-      if (i < 13)
+      if (i < 17)
       {
-        bitWrite(cardChunk2, i + 11, bitRead(bitHolder1, i));
+        bitWrite(cardChunk2, i + 15, bitRead(bitHolder1, i));
       }
-      if (i < 11)
+      if (i < 15)
       {
         bitWrite(cardChunk2, i, bitRead(bitHolder2, i));
       }
@@ -961,6 +999,7 @@ void getCardValues()
     break;
 
   case 34:
+
     for (int i = 19; i >= 0; i--)
     {
       if (i == 13 || i == 10)
@@ -987,6 +1026,7 @@ void getCardValues()
     break;
 
   case 35:
+
     for (int i = 19; i >= 0; i--)
     {
       if (i == 13 || i == 11)
@@ -1013,25 +1053,26 @@ void getCardValues()
     break;
 
   case 36:
-    for (int i = 19; i >= 0; i--)
+
+    for (int i = 35; i >= 0; i--)
     {
-      if (i == 13 || i == 12)
+      if (i == 17 || i == 16)
       {
         bitWrite(cardChunk1, i, 1);
       }
-      else if (i > 12)
+      else if (i > 16)
       {
         bitWrite(cardChunk1, i, 0);
       }
       else
       {
-        bitWrite(cardChunk1, i, bitRead(bitHolder1, i + 10));
-      }
-      if (i < 10)
-      {
-        bitWrite(cardChunk2, i + 14, bitRead(bitHolder1, i));
+        bitWrite(cardChunk1, i, bitRead(bitHolder1, i + 14));
       }
       if (i < 14)
+      {
+        bitWrite(cardChunk2, i + 18, bitRead(bitHolder1, i));
+      }
+      if (i < 18)
       {
         bitWrite(cardChunk2, i, bitRead(bitHolder2, i));
       }
@@ -1082,6 +1123,7 @@ void loop()
   {
     unsigned char i;
 
+    getDataStream();
     getCardValues();
     getFacilityCodeCardNumber();
     consoleLog();
@@ -1106,6 +1148,8 @@ void loop()
     bitHolder2 = 0;
     cardChunk1 = 0;
     cardChunk2 = 0;
+    dataStream = 0;
+    dataStreamBIN = "";
 
     for (i = 0; i < MAX_BITS; i++)
     {
