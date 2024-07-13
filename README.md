@@ -214,7 +214,7 @@ Attach the SparkFun board to your computer and click on the alien (PlatformIO) i
 
 ## Writing Captured Card Data
 
-As part of the Doppelgänger eco-system, I have created [Doppelgänger Assistant](https://github.com/tweathers-sec/doppelganger-assistant). This tool is designed to make it easy to write captured card data with a Proxmark3. Below is a quick demo of the usage:
+As part of the Doppelgänger eco-system, I have created [Doppelgänger Assistant](https://github.com/tweathers-sec/doppelganger-assistant). This tool is designed to make it easy to write captured card data with a Proxmark3. Below is a quick video demo of the usage:
 
 [![Doppelgänger Assistant Demo](https://img.youtube.com/vi/RfWKgS-U8ws/0.jpg)](https://youtu.be/RfWKgS-U8ws)
 
