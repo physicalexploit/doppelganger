@@ -212,6 +212,12 @@ Attach the SparkFun board to your computer and click on the alien (PlatformIO) i
 * Click the **Checkmark** on the lower ribbon of VSCode. This will build the firmware.
 * Click the **RightArrow** on the lower ribbon of VSCode. This will upload the firmware to the device. *You may need to press the boot button on the device.*
 
+## Writing Captured Card Data
+
+As part of the Doppelgänger eco-system, I have created [Doppelgänger Assistant](https://github.com/tweathers-sec/doppelganger-assistant). This tool is designed to make it easy to write captured card data with a Proxmark3. Below is a quick demo of the usage:
+
+[![Doppelgänger Assistant Demo](https://img.youtube.com/vi/RfWKgS-U8ws/0.jpg)](https://youtu.be/RfWKgS-U8ws)
+
 ## Credit / Special Thanks
 
 Special thanks to the following folks:
