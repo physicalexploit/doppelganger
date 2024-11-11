@@ -73,7 +73,11 @@ The simpliest way to get going with Doppelgänger is to head over to the [Practi
 
 ### Doppelgänger Breakout Board
 
-* [Doppelgänger Longrange Breakout Board](https://store.physicalexploit.com/products/doppelganger-longrange-breakout-board): Supports HID MaxiProx 5375 and HID iCLASS R90SE
+* [Doppelgänger Longrange Breakout Board](https://store.physicalexploit.com/products/doppelganger-pcb): Supports HID MaxiProx 5375 and HID iCLASS R90SE
+
+![Doppelgänger Longrange Breakout Board](https://github.com/optiv/doppelganger/blob/main/git_images/doppelganger_pcb.jpg)
+
+![Doppelgänger MaxiProx 5375](https://github.com/optiv/doppelganger/blob/main/git_images/maxiprox.jpg)
 
 ## DIY Build
 
