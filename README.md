@@ -75,9 +75,9 @@ The simpliest way to get going with Doppelgänger is to head over to the [Practi
 
 [Doppelgänger Longrange Breakout Board](https://store.physicalexploit.com/products/doppelganger-pcb): Supports HID MaxiProx 5375 and HID iCLASS R90SE
 
-![Doppelgänger Longrange Breakout Board](https://github.com/optiv/doppelganger/blob/main/git_images/doppelganger_pcb.jpg)
+![Doppelgänger Longrange Breakout Board](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/doppelganger_pcb.jpg)
 
-![Doppelgänger MaxiProx 5375](https://github.com/optiv/doppelganger/blob/main/git_images/maxiprox.jpg)
+![Doppelgänger MaxiProx 5375](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/maxiprox.jpg)
 
 ## DIY Build
 
@@ -111,15 +111,15 @@ Below are the wiring diagrams for each reader. As the RFID readers below output 
 
 *Note, you can use various ESP32's, the diagrams below are merely an example.*
 
-![MaxiProx Wiring](https://github.com/optiv/doppelganger/blob/main/git_images/maxiprox_wiring.jpg)
+![MaxiProx Wiring](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/maxiprox_wiring.jpg)
 
-![ICLASS SE Wiring](https://github.com/optiv/doppelganger/blob/main/git_images/iclass_se_wiring.jpg)
+![ICLASS SE Wiring](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/iclass_se_wiring.jpg)
 
-![Indala Wiring](https://github.com/optiv/doppelganger/blob/main/git_images/indala_wiring.jpg)
+![Indala Wiring](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/indala_wiring.jpg)
 
-![SE Installation](https://github.com/optiv/doppelganger/blob/main/git_images/se_install.jpg)
+![SE Installation](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/se_install.jpg)
 
-![Indala Wiring](https://github.com/optiv/doppelganger/blob/main/git_images/indala_install.jpg)
+![Indala Wiring](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/indala_install.jpg)
 
 ## Getting Started with Doppelgänger
 
@@ -138,7 +138,7 @@ For setup purposes, I recommend using a computer to configure the device initial
 * **Restart** - Self-explanatory
 * **Exit** - Self-explanatory
 
-![WiFi Manager Menu.png](https://github.com/optiv/doppelganger/blob/main/git_images/wifimanager.jpg)
+![WiFi Manager Menu.png](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/wifimanager.jpg)
 
 ## Connecting Doppelgänger to a Mobile Device
 
@@ -181,7 +181,7 @@ Ensure that you have the Personal Hotspot menu opened on your iPhone before powe
 
 Here's a quick look at the web application for reference:
 
-![WebApp.png](https://github.com/optiv/doppelganger/blob/main/git_images/webapp_view.jpg)
+![WebApp.png](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/webapp_view.jpg)
 
 ## Debugging
 
@@ -196,8 +196,8 @@ screen /dev/tty.usbserial-13440 115200
 
 To connect to the device from PlatformIO/vscode: Open a PlatformIO project (this repository) and click the monitor button.
 
-![Boot Process](https://github.com/optiv/doppelganger/blob/main/git_images/boot_process.jpg)
-![Card Handling](https://github.com/optiv/doppelganger/blob/main/git_images/card_handling.jpg)
+![Boot Process](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/boot_process.jpg)
+![Card Handling](https://github.com/tweathers-sec/doppelganger/blob/main/git_images/card_handling.jpg)
 
 ## Flashing the device
 
