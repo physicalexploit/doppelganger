@@ -1,7 +1,6 @@
 /*
  * Doppelgänger RFID Community Edition
- * Version 2.0.1
- * Last Update: July 4, 2024
+ * Last Update: November 11, 2024
  *
  * Copyright (c) 2024
  *
@@ -11,6 +10,9 @@
  */
 
 ///////////////////////////////////////////////////////
+// Version Information
+const char *version = "2.0.2";
+
 // Load the libraries that we require
 #include <FS.h>
 #include <LittleFS.h>
@@ -328,7 +330,8 @@ void setup()
   Serial.println("======================================");
   Serial.println("Doppelgänger RFID Community Edition");
   Serial.println("Copyright (c) 2024");
-  Serial.println("Version: 2.0.1");
+  Serial.print("Version: ");
+  Serial.println(version);
   Serial.println("Firmware & Hardware: @tweathers-sec (GitHub) @tweathers_sec (X.com)");
   Serial.println("Note: For expanded card support and features, visit https://store.physicalexploit.com/ and ");
   Serial.println("consider purchasing Doppelgänger Pro, Stealth, or MFAS (MFA-Stealth).");
@@ -761,13 +764,13 @@ void getFacilityCodeCardNumber()
 
   // HID H10304 37-bit
   case 37:
-    for (i = 2; i < 17; i++)
+    for (i = 1; i < 17; i++)
     {
       facilityCode <<= 1;
       facilityCode |= databits[i];
     }
 
-    for (i = 18; i < 36; i++)
+    for (i = 17; i < 36; i++)
     {
       cardNumber <<= 1;
       cardNumber |= databits[i];
